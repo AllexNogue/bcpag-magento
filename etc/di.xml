@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="BrasilcashGatewayFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Brasilcash\Gateway\Model\Ui\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Brasilcash\Gateway\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">BrasilcashPaymentGatewayValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">BrasilcashPaymentGatewayCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <!-- Configuration reader -->
+    <virtualType name="BrasilcashPaymentGatewayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Brasilcash\Gateway\Model\Ui\ConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
+    <!-- Logger, initialized with BrasilcashPaymentGateway -->
+    <virtualType name="BrasilcashPaymentGatewayLogger" type="Magento\Payment\Model\Method\Logger">
+        <arguments>
+            <argument name="config" xsi:type="object">BrasilcashPaymentGatewayConfig</argument>
+        </arguments>
+    </virtualType>
+    <type name="Brasilcash\Gateway\Gateway\Http\Client\HttpClient">
+        <arguments>
+            <argument name="logger" xsi:type="object">BrasilcashPaymentGatewayLogger</argument>
+        </arguments>
+    </type>
+    <!-- Commands infrastructure -->
+    <virtualType name="BrasilcashPaymentGatewayCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">BrasilcashPaymentGatewayAuthorizeCommand</item>
+                <item name="capture" xsi:type="string">BrasilcashPaymentGatewayCaptureCommand</item>
+                <item name="void" xsi:type="string">BrasilcashPaymentGatewayVoidCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <!-- Authorize command -->
+    <virtualType name="BrasilcashPaymentGatewayAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">BrasilcashPaymentGatewayAuthorizationRequest</argument>
+            <argument name="handler" xsi:type="object">BrasilcashPaymentGatewayResponseHandlerComposite</argument>
+            <argument name="transferFactory" xsi:type="object">Brasilcash\Gateway\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">Brasilcash\Gateway\Gateway\Validator\ResponseCodeValidator</argument>
+            <argument name="client" xsi:type="object">Brasilcash\Gateway\Gateway\Http\Client\HttpClient</argument>
+        </arguments>
+    </virtualType>
+    <!-- Authorization Request -->
+    <virtualType name="BrasilcashPaymentGatewayAuthorizationRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="transaction" xsi:type="string">Brasilcash\Gateway\Gateway\Request\AuthorizationRequest</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Brasilcash\Gateway\Gateway\Request\AuthorizationRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">BrasilcashPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+    <!-- Capture command -->
+    <virtualType name="BrasilcashPaymentGatewayCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">Brasilcash\Gateway\Gateway\Request\CaptureRequest</argument>
+            <argument name="handler" xsi:type="object">Brasilcash\Gateway\Gateway\Response\TxnIdHandler</argument>
+            <argument name="transferFactory" xsi:type="object">Brasilcash\Gateway\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">Brasilcash\Gateway\Gateway\Validator\ResponseCodeValidator</argument>
+            <argument name="client" xsi:type="object">Brasilcash\Gateway\Gateway\Http\Client\HttpClient</argument>
+        </arguments>
+    </virtualType>
+    <!-- Capture Request -->
+    <type name="Brasilcash\Gateway\Gateway\Request\CaptureRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">BrasilcashPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+    <!-- Void command -->
+    <virtualType name="BrasilcashPaymentGatewayVoidCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">Brasilcash\Gateway\Gateway\Request\VoidRequest</argument>
+            <argument name="handler" xsi:type="object">Brasilcash\Gateway\Gateway\Response\TxnIdHandler</argument>
+            <argument name="transferFactory" xsi:type="object">Brasilcash\Gateway\Gateway\Http\TransferFactory</argument>
+            <argument name="validator" xsi:type="object">Brasilcash\Gateway\Gateway\Validator\ResponseCodeValidator</argument>
+            <argument name="client" xsi:type="object">Brasilcash\Gateway\Gateway\Http\Client\HttpClient</argument>
+        </arguments>
+    </virtualType>
+    <!-- Void Request -->
+    <type name="Brasilcash\Gateway\Gateway\Request\VoidRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">BrasilcashPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+    <!-- Response handlers -->
+    <virtualType name="BrasilcashPaymentGatewayResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="txnid" xsi:type="string">Brasilcash\Gateway\Gateway\Response\TxnIdHandler</item>
+                <item name="fraud" xsi:type="string">Brasilcash\Gateway\Gateway\Response\FraudHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <!-- Value handlers infrastructure -->
+    <virtualType name="BrasilcashPaymentGatewayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">BrasilcashPaymentGatewayValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="BrasilcashPaymentGatewayValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">BrasilcashPaymentGatewayConfig</argument>
+        </arguments>
+    </virtualType>
+    <type name="Brasilcash\Gateway\Block\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">BrasilcashPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+</config>

@@ -1,0 +1,44 @@
+<?php if (!$block->pix) return; ?>
+
+<div class="block block-order-details-view">
+    <div class="block-title">
+        <strong>PIX</strong>
+    </div>
+    <div class="block-content">
+        <div class="box" style="width: 100%;">
+            <div class="box-title">QR Code</div>
+            <div style="width: 300px;">
+                <img src="<?= $block->qrcode->render($block->pix['pix_qr_code']) ?>" alt="QR Code Pix">
+            </div>
+            <div style="width: 100%;">
+                <div class="box-title">Copia e Cola</div>
+                <p id="qrCode"><?= $block->pix['pix_qr_code'] ?></p>
+                <button onclick="copyQrCode('qrCode')" class="action primary"><?= __('Copy') ?></button>
+            </div>
+            <div style="margin-top: 15px;">
+                <p>Após o pagamento o QR Code não ficará mais disponível nesta tela.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(containerid) {
+        if (document.selection) {
+            var range = document.body.createTextRange();
+            range.moveToElementText(document.getElementById(containerid));
+            range.select().createTextRange();
+            document.execCommand("copy");
+        } else if (window.getSelection) {
+            var range = document.createRange();
+            range.selectNode(document.getElementById(containerid));
+            window.getSelection().addRange(range);
+            document.execCommand("copy");
+        }
+        alert("<?= __('QR Code copied to clipboard.') ?>")
+    }
+
+    function copyQrCode(id) {
+        copyToClipboard(id);
+    }
+</script>

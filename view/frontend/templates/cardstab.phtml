@@ -1,0 +1,44 @@
+<?php if (empty($block->cards)) : ?>
+    <div class="message info empty"><span>Você não possui cartões salvos. Faça uma compra para visualizá-los aqui.</span></div>
+<?php else : ?>
+    <table class="data table table-cards history" id="cards-table">
+        <caption class="table-caption">Meus Cartões</caption>
+        <thead>
+            <tr>
+                <th scope="col" class="col">Nome no Cartão</th>
+                <th scope="col" class="col">Últimos Dígitos</th>
+                <th scope="col" class="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($block->cards as $card) : ?>
+                <tr data-card-id="<?= $card->card_id ?>">
+                    <td class="col"><?= $card->card_holder_name ?></td>
+                    <td class="col"><?= $card->card_last_digits ?></td>
+                    <td class="col"><a href="#" onclick="remove(this)">Remover</a></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php endif; ?>
+
+<script>
+    function remove(el) {
+        const tr = jQuery(el).parents('tr').first();
+        const id = tr.data('card-id');
+        if (!id) return;
+        if (confirm('Tem certeza de que deseja remover esse cartão?')) {
+            jQuery.ajax({
+                method: 'DELETE',
+                url: `cartoes/${id}`,
+                success: function(res) {
+                    location.reload();
+                },
+                error: function() {
+                    alert('Não foi possível remover o cartão. Por favor, tente novamente.');
+                    location.reload();
+                }
+            });
+        }
+    }
+</script>
